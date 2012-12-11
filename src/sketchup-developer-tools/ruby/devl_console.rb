@@ -72,6 +72,9 @@ class Console
   # console instance during execution so it's accessible to the puts call.
   @@quiet = false
 
+  # Indicates whether the OS is Mac (true) or Windows (false).
+  @@ismac = Object::RUBY_PLATFORM =~ /darwin/
+
   # Protect ourselves against reload effectively disabling the console by
   # clearing our key class-level variables.
   if (!defined? @@instances)
@@ -173,7 +176,7 @@ class Console
     # Regardless of consolemax setting we find the first previously valid
     # console instance that isn't visible and show that if we find one.
     if @@instances.length > 0
-      dialog = @@instances.find {|dlg| !dlg.visible? }
+      dialog = @@instances.find {|console| !console.visible? }
     end
 
     # If we didn't find a previous instance we have to look to consolemax
@@ -396,7 +399,7 @@ class Console
 
     # Capture instances in a class-level list so we can reuse non-visible
     # ones. Note that the first instance in this list is the Root Console.
-    @@instances.push(@dialog)
+    @@instances.push(self)
     if @@instances.length == 1
       @@rootConsole = @dialog
     end
@@ -767,7 +770,7 @@ END
     # html directory where the console markup can be found.
     @html = File.dirname(__FILE__) + '/../html/console.html'
     @dialog.set_file(@html, nil)
-    @dialog.show
+    @@ismac ? @dialog.show_modal : @dialog.show
     @dialog.execute_script("document.getElementsByTagName('body')[0].style.background='"+@dialog.get_default_dialog_color+"'")
 
     # Catch ScriptErrors. Not a nice solution, but urgently needed.
